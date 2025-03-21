@@ -1,0 +1,34 @@
+{
+  "manifest_version": 2,
+  "name": "AI Writing Assistant",
+  "version": "1.0",
+  "description": "Improve your email writing style using Groq AI",
+  "author": "Your Name",
+  "applications": {
+    "gecko": {
+      "id": "groq-writing-assistant@example.com",
+      "strict_min_version": "78.0"
+    }
+  },
+  "permissions": [
+    "compose",
+    "storage",
+    "https://api.groq.com/*",
+    "https://api.openai.com/*",
+    "https://generativelanguage.googleapis.com/*"
+  ],
+  "background": {
+    "scripts": ["background.js"]
+  },
+  "options_ui": {
+    "page": "options.html",
+    "open_in_tab": true
+  },
+  "compose_action": {
+    "default_title": "Improve Writing Style",
+    "default_icon": {
+      "32": "icons/icon-32.png",
+      "256": "icons/icon-256.png"
+    }
+  }
+}
