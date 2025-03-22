@@ -173,9 +173,9 @@
         </div>
       </div>
       <div class="form-group">
-        <label for="prompt">Improvement Prompt:</label>
+        <label for="promptSplit">Split Prompt</label>
         <textarea
-          id="prompt"
+          id="promptSplit"
           rows="4"
           style="
             width: 100%;
@@ -183,9 +183,36 @@
             border: 1px solid #ccc;
             border-radius: 4px;
           "
-          placeholder="Enter the prompt to use for improving HTML"
+          placeholder="Enter the prompt to use for seperating mail draft and footer"
         ></textarea>
       </div>
+      <div class="form-group">
+        <label for="prompt">Improvement Prompt:</label>
+        <textarea
+          id="promptImprove"
+          rows="4"
+          style="
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+          "
+          placeholder="Enter the prompt to use for improving mails"
+        ></textarea>
+      </div>
+      <div class="form-group">
+        <label for="promptHtml2Text">Html2Text Prompt:</label>
+        <textarea
+          id="promptHtml2Text"
+          rows="4"
+          style="
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+          "
+          placeholder="Enter the prompt to use for Html2Text"
+        ></textarea>
       <button id="save">Save Settings</button>
       <div id="status" class="status" style="display: none"></div>
     </div>
