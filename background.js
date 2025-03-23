@@ -1,4 +1,19 @@
-// Initialize the add-on
+function trimStringWithEllipsis(str, n) {
+  return str.length > n ? str.substring(0, n) + '...' : str;
+}
+
+function splitHtmlByTag(htmlString, tagName) {
+  const index = htmlString.indexOf(tagName);
+  if (index === -1) {
+    return [htmlString, '']; // tag not found
+  }
+
+  const before = htmlString.slice(0, index);
+  const after = htmlString.slice(index);
+  return [before, after];
+}
+
+// Initialize the add-on 
 browser.runtime.onInstalled.addListener(async () => {
   // Prompt for API key on installation
   const result = await browser.storage.local.get("apiKey");
@@ -20,13 +35,15 @@ browser.composeAction.onClicked.addListener(async (tab) => {
 
     // Get the custom prompt and model from settings
     const settings = await browser.storage.local.get([
-      "improvementPrompt",
+      "promptImprove",
+      "promptHtml2Text",
       "selectedModel",
       "apiKey",
       "temperature",
       "maxTokens",
     ]);
-    const customPrompt = settings.improvementPrompt;
+    const promptImprove = settings.promptImprove;
+    const promptHtml2Text = settings.promptHtml2Text;
     const selectedModel = settings.selectedModel;
     const apiKey = settings.apiKey;
     const temperature = settings.temperature;
@@ -37,30 +54,47 @@ browser.composeAction.onClicked.addListener(async (tab) => {
         "API key not found. Please set up your API key in the extension settings."
       );
     }
+    
+    // Split the draft from the history
+    const [draft, history] = splitHtmlByTag(composeWindow.body, '<blockquote type="cite"');
+    if (!draft.trim()) {
+      throw new Error("Draft is empty. Please write an email before using the AI.");
+    }
 
+    // Improve the writing of the draft
+    const history_trimmed = trimStringWithEllipsis(history, 3000);
     const improvedHtml = await promptAI(
-      composeWindow.body,
+      `${draft}\n<!--HereStartsConversationHistory-->\n${history_trimmed}`,
       selectedModel,
-      customPrompt,
-      apiKey,
-      temperature,
-      maxTokens
-    );
-    const improvedText = await promptAI(
-      improvedHtml,
-      selectedModel,
-      "This is the html code of the email. Please convert it to a plain text email. Do not change the content of the email, only the format.",
+      promptImprove,
       apiKey,
       temperature,
       maxTokens
     );
 
-    // Update the compose window with improved text
-    await browser.compose.setComposeDetails(tab.id, {
-      ...composeWindow,
-      body: improvedHtml,
-      plainTextBody: improvedText,
-    });
+    // Join the improved text with the history and update the compose window
+    if (composeWindow.isPlainText) {
+      const improvedText = await promptAI(
+        improvedHtml,
+        selectedModel,
+        promptHtml2Text, 
+        apiKey,
+        temperature,
+        maxTokens
+      );
+      const improvedTextWithHistory = `${improvedText}\n\n${history}`;
+      await browser.compose.setComposeDetails(tab.id, {
+        ...composeWindow,
+        plainTextBody: improvedTextWithHistory,
+      });
+
+    } else {
+      const improvedHtmlWithHistory = `${improvedHtml}<br><br>${history}`;
+      await browser.compose.setComposeDetails(tab.id, {
+        ...composeWindow,
+        body: improvedHtmlWithHistory,
+      });
+    }
 
     // Re-enable the button
     await browser.composeAction.enable(tab.id);
@@ -79,7 +113,7 @@ browser.composeAction.onClicked.addListener(async (tab) => {
       }
     } else {
       alert(
-        "Failed to improve writing style. Please check your API key and try again."
+        "Failed to improve writing. Please check your API key and try again."
       );
     }
   }
