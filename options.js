@@ -1,7 +1,6 @@
 document.addEventListener("DOMContentLoaded", async () => {
   // Load saved settings
   const result = await browser.storage.local.get([
-    "promptSplit",
     "promptImprove",
     "promptHtml2Text",
     "selectedModel",
@@ -12,17 +11,10 @@ document.addEventListener("DOMContentLoaded", async () => {
   if (result.apiKey) {
     document.getElementById("apiKey").value = result.apiKey;
   }
-  if (result.promptSplit) {
-    document.getElementById("promptSplit").value = result.promptSplit;
-  } else {
-    document.getElementById("promptSplit").value = `Du erhältst eine E-Mail im HTML- oder Textformat. Diese musst du durch den Marker <!--EndOfDraft--> in zwei Abschnitte unterteilt:  1. Draft-Teil (vor dem Marker) 2. Kontext-/Konversations-Verlaufsteil (nach dem Marker), beinhaltet auch den Part der Signatur mit deren gesamter HTML Gruppe (z.B. <p>)
-    `;
-  }
   if (result.promptImprove) {
     document.getElementById("promptImprove").value = result.promptImprove;
   } else {
-    document.getElementById("promptImprove").value =`Du erhältst eine E-Mail im HTML- oder Textformat. Diese ist durch den Marker <!--EndOfDraft--> in zwei Abschnitte unterteilt: 1. Draft-Teil (vor dem Marker) 2. Kontext-/Verlaufsteil (nach dem Marker)
-Deine Aufgabe: Überarbeite ausschließlich den Draft-Teil und formuliere daraus eine vollständige E-Mail im HTML-Format.
+    document.getElementById("promptImprove").value =`Du erhältst eine E-Mail im HTML- oder Textformat. Deine Aufgabe: Überarbeite ausschließlich den Draft-Teil und formuliere daraus eine vollständige E-Mail im HTML-Format in der Sprache die auch im Draft verwendet wird.
 Vorgehensweise:
 1. Strukturiere den Inhalt logisch und leserfreundlich.
 2. Formuliere die E-Mail klar, prägnant und übersichtlich. Halte dich dabei an folgende Regeln:
@@ -31,7 +23,9 @@ Vorgehensweise:
   - Alle Stichpunkte müssen vollständig und inhaltlich korrekt enthalten sein
   - Der Text muss leicht überfliegbar und schnell erfassbar sein.
 3. Gib ausschließlich den plain HTML-Code ohne codeblock formatierung zurück, der den Draft-Teil ersetzt.
-Wichtig: Der Kontext-/Verlaufsteil nach <!--EndOfDraft--> dient nur zur Orientierung, er soll nicht verändert oder ausgegeben werden.
+Wichtig: 
+  - Der Kontext-/Verlaufsteil dient nur zur Orientierung, er soll nicht verändert oder ausgegeben werden.
+  - Der HTML-Code einer ggf vorhandenen Signatur darf nicht verändert werden.
   `;
   }
   if (result.promptHtml2Text) {
@@ -61,7 +55,6 @@ Wichtig: Der Kontext-/Verlaufsteil nach <!--EndOfDraft--> dient nur zur Orientie
   // Handle save button click
   document.getElementById("save").addEventListener("click", async () => {
     const apiKey = document.getElementById("apiKey").value.trim();
-    const promptSplit = document.getElementById("promptSplit").value.trim();
     const promptImprove = document.getElementById("promptImprove").value.trim();
     const promptHtml2Text = document.getElementById("promptHtml2Text").value.trim();
     const model = document.getElementById("model").value;
@@ -74,7 +67,7 @@ Wichtig: Der Kontext-/Verlaufsteil nach <!--EndOfDraft--> dient nur zur Orientie
       showStatus("Please enter an API key", "error");
       return;
     }
-    if (!promptSplit || !promptImprove || !promptHtml2Text) {
+    if (!promptImprove || !promptHtml2Text) {
       showStatus("Please enter all prompts", "error");
       return;
     }
@@ -94,7 +87,6 @@ Wichtig: Der Kontext-/Verlaufsteil nach <!--EndOfDraft--> dient nur zur Orientie
       // Save settings
       await browser.storage.local.set({
         apiKey: apiKey,
-        promptSplit: promptSplit,
         promptImprove: promptImprove,
         promptHtml2Text: promptHtml2Text,
         selectedModel: model,

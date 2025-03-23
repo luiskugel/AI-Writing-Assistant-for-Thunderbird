@@ -2,6 +2,17 @@ function trimStringWithEllipsis(str, n) {
   return str.length > n ? str.substring(0, n) + '...' : str;
 }
 
+function splitHtmlByTag(htmlString, tagName) {
+  const index = htmlString.indexOf(tagName);
+  if (index === -1) {
+    return [htmlString, '']; // tag not found
+  }
+
+  const before = htmlString.slice(0, index);
+  const after = htmlString.slice(index);
+  return [before, after];
+}
+
 // Initialize the add-on 
 browser.runtime.onInstalled.addListener(async () => {
   // Prompt for API key on installation
@@ -24,7 +35,6 @@ browser.composeAction.onClicked.addListener(async (tab) => {
 
     // Get the custom prompt and model from settings
     const settings = await browser.storage.local.get([
-      "promptSplit",
       "promptImprove",
       "promptHtml2Text",
       "selectedModel",
@@ -32,7 +42,6 @@ browser.composeAction.onClicked.addListener(async (tab) => {
       "temperature",
       "maxTokens",
     ]);
-    const promptSplit = settings.promptSplit;
     const promptImprove = settings.promptImprove;
     const promptHtml2Text = settings.promptHtml2Text;
     const selectedModel = settings.selectedModel;
@@ -45,24 +54,17 @@ browser.composeAction.onClicked.addListener(async (tab) => {
         "API key not found. Please set up your API key in the extension settings."
       );
     }
-    const htmlBody = trimStringWithEllipsis(composeWindow.body, 3000);
     
-    // Split the email into draft and history
-    const annotatedHtml = await promptAI(
-      htmlBody,
-      selectedModel,
-      promptSplit, //"Given this email content, indicate with <!--EndOfDraft--> the end of the draft, and the start of the email signature / previous history of the conversation.",
-      apiKey,
-      temperature,
-      maxTokens
-    );
-    const [draft, history] = annotatedHtml.split("<!--EndOfDraft-->");
+    // Split the draft from the history
+    const [draft, history] = splitHtmlByTag(composeWindow.body, '<blockquote type="cite"');
     if (!draft.trim()) {
       throw new Error("Draft is empty. Please write an email before using the AI.");
     }
-    
+
+    // Improve the writing of the draft
+    const history_trimmed = trimStringWithEllipsis(history, 3000);
     const improvedHtml = await promptAI(
-      draft,
+      `${draft}\n<!--HereStartsConversationHistory-->\n${history_trimmed}`,
       selectedModel,
       promptImprove,
       apiKey,
@@ -70,27 +72,24 @@ browser.composeAction.onClicked.addListener(async (tab) => {
       maxTokens
     );
 
-    // Join the improved text with the history
-    const improvedHtmlWithHistory = `${improvedHtml}<br><br>${history}`;
-
+    // Join the improved text with the history and update the compose window
     if (composeWindow.isPlainText) {
       const improvedText = await promptAI(
         improvedHtml,
         selectedModel,
-        promptHtml2Text, //"This is the html code of the email. Please convert it to a plain text email. Do not change the content of the email, only the format. Use explicit line breaks to separate paragraphs.",
+        promptHtml2Text, 
         apiKey,
         temperature,
         maxTokens
       );
       const improvedTextWithHistory = `${improvedText}\n\n${history}`;
-
-      
-      // Update the compose window with improved text
       await browser.compose.setComposeDetails(tab.id, {
         ...composeWindow,
         plainTextBody: improvedTextWithHistory,
       });
+
     } else {
+      const improvedHtmlWithHistory = `${improvedHtml}<br><br>${history}`;
       await browser.compose.setComposeDetails(tab.id, {
         ...composeWindow,
         body: improvedHtmlWithHistory,
@@ -114,7 +113,7 @@ browser.composeAction.onClicked.addListener(async (tab) => {
       }
     } else {
       alert(
-        "Failed to improve writing style. Please check your API key and try again."
+        "Failed to improve writing. Please check your API key and try again."
       );
     }
   }
