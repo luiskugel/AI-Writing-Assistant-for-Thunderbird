@@ -7,9 +7,10 @@ A Thunderbird extension that helps improve your email writing using various AI m
 ![Usage](./demo.gif)
 
 ### Multiple AI Models Support
-| **OpenAI Models** | **Groq Models** | **Google Models** |
-|-------------------|-----------------|-------------------|
-| GPT-4 Turbo       | Llama 3.3 70B Versatile | Gemini 2.0 Flash |
+
+| **OpenAI Models** | **Groq Models**         | **Google Models** |
+| ----------------- | ----------------------- | ----------------- |
+| GPT-4 Turbo       | Llama 3.3 70B Versatile | Gemini 2.0 Flash  |
 | GPT-4 Turbo Mini  | Llama 3.2 3B Preview    |                   |
 | GPT-3.5 Turbo     |                         |                   |
 
@@ -37,7 +38,7 @@ Settings can be accessed from the Thunderbird add-ons list.
 
 1. Download the extension zib file from the releases page.
 2. In Thunderbird, go to **Tools > Add-ons**
-3. Click the gear icon > *Install Add-on From File*
+3. Click the gear icon > _Install Add-on From File_
 4. Choose the downloaded file
 
 ### First-Time Setup
@@ -59,19 +60,23 @@ Settings can be accessed from the Thunderbird add-ons list.
 
 ## ✅ Requirements
 
-- Thunderbird 78.0+  
-- API key from a supported AI provider  
+- Thunderbird 78.0+
+- API key from a supported AI provider
 - Internet connection
 
 ## 🛠️ Troubleshooting
 
-- Double-check your API key  
-- Ensure internet access  
-- Use a supported Thunderbird version  
-- Read error messages for hints  
+- Double-check your API key
+- Ensure internet access
+- Use a supported Thunderbird version
+- Read error messages for hints
+
+## 🤝 Contributing
+
+We welcome bug reports and pull requests! See our [CONTRIBUTING.md](CONTRIBUTING.md) for more details.
 
 ## License
 
-[Your chosen license]
+This project is licensed under the [Apache License 2.0](LICENSE) - see the [LICENSE](LICENSE) file for details.
 
 Icons adapted from [pepicons](https://github.com/CyCraft/pepicons/) (CC BY 4.0).
