@@ -25,10 +25,15 @@
     "open_in_tab": true
   },
   "compose_action": {
-    "default_title": "Improve Writing Style",
+    "default_title": "Improve Writing",
     "default_icon": {
-      "32": "icons/icon-32.png",
-      "256": "icons/icon-256.png"
+      "32": "icons/pencil-32.png",
+      "64": "icons/pencil-64.png"
     }
+  },
+  "icons": {
+    "32": "icons/pencil-filled-32.png",
+    "64": "icons/pencil-filled-64.png",
+    "256": "icons/pencil-filled-256.png"
   }
 }

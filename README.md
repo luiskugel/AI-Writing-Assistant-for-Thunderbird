@@ -4,6 +4,8 @@ A Thunderbird extension that helps improve your email writing using various AI m
 
 ## ✨ Features
 
+![Usage](./demo.gif)
+
 ### Multiple AI Models Support
 | **OpenAI Models** | **Groq Models** | **Google Models** |
 |-------------------|-----------------|-------------------|
@@ -71,3 +73,5 @@ Settings can be accessed from the Thunderbird add-ons list.
 ## License
 
 [Your chosen license]
+
+Icons adapted from [pepicons](https://github.com/CyCraft/pepicons/) (CC BY 4.0).
