@@ -26,6 +26,14 @@
         padding: 8px;
         border: 1px solid #ccc;
         border-radius: 4px;
+        box-sizing: border-box;
+      }
+      textarea {
+        width: 100%;
+        padding: 8px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        box-sizing: border-box;
       }
       button {
         background-color: #0060df;
@@ -37,6 +45,9 @@
       }
       button:hover {
         background-color: #003eaa;
+      }
+      details[open] summary {
+        margin-bottom: 0.5em;
       }
       .status {
         margin-top: 20px;
@@ -95,14 +106,10 @@
     </div>
     <div class="container">
       <h1>AI Writing Assistant Settings</h1>
-      <div class="form-group">
-        <label for="apiKey">API Key:</label>
-        <input
-          type="text"
-          id="apiKey"
-          placeholder="Enter your API key for the provider of model you want to use."
-        />
-      </div>
+      <p class="form-group" style="font-size: 0.9em; color: #5e636e">
+        A Thunderbird extension that helps improve your email writing using various AI models (LLMs) and customizable prompts. Feel free to 
+        contribute or report bugs on <a href="https://github.com/luiskugel/AI-Writing-Assistant-for-Thunderbird" target="_blank">Github</a>.
+      </p>
       <div class="form-group">
         <label for="model">AI Model:</label>
         <select
@@ -114,91 +121,146 @@
             border-radius: 4px;
           "
         >
-          <option value="openai:gpt-4o">OpenAI GPT-4o</option>
-          <option value="openai:gpt-4o-mini">OpenAI GPT-4o Mini</option>
-          <option value="openai:o3-mini">OpenAI O3 mini</option>
+          <option value="openai:gpt-4o">
+            OpenAI: GPT-4o
+          </option>
+          <option value="openai:gpt-4o-mini">
+            OpenAI: GPT-4o Mini
+          </option>
+          <option value="openai:o3-mini">
+            OpenAI: O3 mini
+          </option>
           <option value="openai:gpt-4.5-preview">
-            OpenAI GPT-4.5 Preview (very expensive)
+            OpenAI: GPT-4.5 Preview (very expensive)
           </option>
           <option value="groq:llama-3.3-70b-versatile">
-            Groq Llama 3.3 70B Versatile 128k
+            Groq: Llama 3.3 70B Versatile 128k
           </option>
           <option value="groq:llama-3.2-3b-preview">
             Groq: Llama 3.2 3B (Preview) 8k
           </option>
           <option value="google:gemini-2.0-flash">
-            Google Gemini 2.0 Flash
+            Google: Gemini 2.0 Flash
           </option>
-        </select>
+          <option value="custom:">
+            custom: Ollama API & Models
+          </select>
       </div>
       <div class="form-group">
-        <label for="temperature">Temperature (Creativity Level):</label>
-        <div style="display: flex; align-items: center; gap: 10px">
-          <input
-            type="range"
-            id="temperature"
-            min="0"
-            max="2"
-            value="0.7"
-            step="0.01"
-            style="flex: 1"
-          />
-          <span id="temperatureValue">0.70</span>
-        </div>
-        <div style="font-size: 0.9em; color: #666; margin-top: 5px">
-          Lower values (0-1) make responses more focused and deterministic,
-          higher values (1-2) make responses more creative and diverse.
-        </div>
+        <label for="apiKey">API Key:</label>
+        <input
+          type="text"
+          id="apiKey"
+          placeholder="Enter your API key for the provider of model you want to use."
+        />
       </div>
-      <div class="form-group">
-        <label for="maxTokens">Max Tokens (Response Length):</label>
-        <div style="display: flex; align-items: center; gap: 10px">
-          <input
-            type="number"
-            id="maxTokens"
-            min="1"
-            max="4000"
-            value="2000"
+      <div class="form-group" id="customApiEndpointGroup" style="display: none;">
+        <label for="customApiEndpoint">Custom API URL:</label>
+        <input
+          type="text"
+          id="customApiEndpoint"
+          placeholder="http://localhost:11434/api/generate"
+          style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px;"
+        />
+      </div>
+      <div class="form-group" id="customModelGroup" style="display: none;">
+        <label for="customModel">Custom Model:</label>
+        <input
+          type="text"
+          id="customModel"
+          placeholder="phi4-mini (lookup your installed models)"
+          style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px;"
+        />
+      </div>
+      <details class="form-group">
+        <summary>More Settings</summary>
+        <div class="form-group">
+          <label for="prompt">Improvement Prompt:</label>
+          <textarea
+            id="promptImprove"
+            rows="4"
             style="
               width: 100%;
               padding: 8px;
               border: 1px solid #ccc;
               border-radius: 4px;
             "
-          />
+            placeholder="Enter the prompt to use for improving mails"
+          ></textarea>
         </div>
-        <div style="font-size: 0.9em; color: #666; margin-top: 5px">
-          Maximum number of tokens in the response. Higher values allow for
-          longer responses but may increase processing time and cost.
-        </div>
-      </div>
-      <div class="form-group">
-        <label for="prompt">Improvement Prompt:</label>
-        <textarea
-          id="promptImprove"
-          rows="4"
-          style="
-            width: 100%;
-            padding: 8px;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-          "
-          placeholder="Enter the prompt to use for improving mails"
-        ></textarea>
-      </div>
-      <div class="form-group">
-        <label for="promptHtml2Text">Html2Text Prompt:</label>
-        <textarea
-          id="promptHtml2Text"
-          rows="4"
-          style="
-            width: 100%;
-            padding: 8px;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-          "
-          placeholder="Enter the prompt to use for Html2Text"
-        ></textarea>
+        <div class="form-group">
+          <label for="promptHtml2Text">Html2Text Prompt:</label>
+          <textarea
+            id="promptHtml2Text"
+            rows="4"
+            style="
+              width: 100%;
+              padding: 8px;
+              border: 1px solid #ccc;
+              border-radius: 4px;
+            "
+            placeholder="Enter the prompt to use for Html2Text"
+          ></textarea>
+          <div class="form-group">
+            <label for="temperature">Temperature (Creativity Level):</label>
+            <div style="display: flex; align-items: center; gap: 10px">
+              <input
+                type="range"
+                id="temperature"
+                min="0"
+                max="2"
+                value="0.7"
+                step="0.01"
+                style="flex: 1"
+              />
+              <span id="temperatureValue">0.70</span>
+            </div>
+            <div style="font-size: 0.9em; color: #666; margin-top: 5px">
+              Lower values (0-1) make responses more focused and deterministic,
+              higher values (1-2) make responses more creative and diverse.
+            </div>
+          </div>
+            <div class="form-group"></div>
+            <label for="maxTokens">Max Tokens (Response Length):</label>
+            <div style="display: flex; align-items: center; gap: 10px">
+              <input
+              type="number"
+              id="maxTokens"
+              min="1"
+              max="4000"
+              value="2000"
+              style="
+                width: 100%;
+                padding: 8px;
+                border: 1px solid #ccc;
+                border-radius: 4px;
+              "
+              />
+            </div>
+            <div style="font-size: 0.9em; color: #666; margin-top: 5px">
+              Maximum number of tokens in the response. Higher values allow for
+              longer responses but may increase processing time and cost.
+            </div>
+            </div>
+            <div class="form-group">
+            <label for="useConversationHistory">Use Conversation History:</label>
+            <div style="display: flex; align-items: center; gap: 10px">
+              <input
+              type="checkbox"
+              id="useConversationHistory"
+              style="
+                width: auto;
+                padding: 8px;
+                border: 1px solid #ccc;
+                border-radius: 4px;
+              "
+              />
+              <span style="font-size: 0.9em; color: #666">
+                Use Conversation History for email draft generation. Recomended to disable for weeker generation models.
+              </span>
+            </div>
+            </div>
+      </details>
       <button id="save">Save Settings</button>
       <div id="status" class="status" style="display: none"></div>
     </div>

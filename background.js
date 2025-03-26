@@ -7,15 +7,24 @@ function splitHtmlByTag(htmlString, tagName) {
   if (index === -1) {
     return [htmlString, '']; // tag not found
   }
-
   const before = htmlString.slice(0, index);
   const after = htmlString.slice(index);
   return [before, after];
 }
 
+function sanetizeLLMResult(llm_result) {
+  llm_result = llm_result.replace("```html", '');
+  llm_result = llm_result.replace("```", '');
+  llm_result = llm_result.replace("'''html", '');
+  llm_result = llm_result.replace("'''", '');
+  llm_result = llm_result.replace('"""html', '');
+  llm_result = llm_result.replace('"""', '');
+  return llm_result;
+}
+
 // Initialize the add-on 
 browser.runtime.onInstalled.addListener(async () => {
-  // Prompt for API key on installation
+  // Prompt for API key and Options on installation
   const result = await browser.storage.local.get("apiKey");
   if (!result.apiKey) {
     browser.tabs.create({
@@ -38,56 +47,53 @@ browser.composeAction.onClicked.addListener(async (tab) => {
       "promptImprove",
       "promptHtml2Text",
       "selectedModel",
+      "useConversationHistory"
+    ]);
+    const api_settings = await browser.storage.local.get([
       "apiKey",
       "temperature",
       "maxTokens",
+      "customApiEndpoint",
+      "customModel"
     ]);
     const promptImprove = settings.promptImprove;
     const promptHtml2Text = settings.promptHtml2Text;
     const selectedModel = settings.selectedModel;
-    const apiKey = settings.apiKey;
-    const temperature = settings.temperature;
-    const maxTokens = settings.maxTokens ?? 2000; // Default to 2000 if not set
-
-    if (!apiKey) {
-      throw new Error(
-        "API key not found. Please set up your API key in the extension settings."
-      );
-    }
+    const useConversationHistory = settings.useConversationHistory;
     
     // Split the draft from the history
-    const [draft, history] = splitHtmlByTag(composeWindow.body, '<blockquote type="cite"');
+    const [draft, history] = splitHtmlByTag(composeWindow.body, '<div class="moz-cite-prefix">');
     if (!draft.trim()) {
       throw new Error("Draft is empty. Please write an email before using the AI.");
     }
 
+    let history_trimmed = trimStringWithEllipsis(history, 3000);
+    if (!useConversationHistory) {
+      history_trimmed = "";
+    }
+
     // Improve the writing of the draft
-    const history_trimmed = trimStringWithEllipsis(history, 3000);
     const improvedHtml = await promptAI(
-      `${draft}\n<!--HereStartsConversationHistory-->\n${history_trimmed}`,
+      `<!--BEGIN DRAFT-->\n${draft}\n<!--END DRAFT-->\n<!-- BEGIN CONTEXT -->\n${history_trimmed}\n<!-- END CONTEXT -->`,
       selectedModel,
       promptImprove,
-      apiKey,
-      temperature,
-      maxTokens
+      api_settings
     );
 
     // Join the improved text with the history and update the compose window
+    // Depending on plain text or HTML different compose details must be set
     if (composeWindow.isPlainText) {
       const improvedText = await promptAI(
         improvedHtml,
         selectedModel,
         promptHtml2Text, 
-        apiKey,
-        temperature,
-        maxTokens
+        api_settings
       );
       const improvedTextWithHistory = `${improvedText}\n\n${history}`;
       await browser.compose.setComposeDetails(tab.id, {
         ...composeWindow,
         plainTextBody: improvedTextWithHistory,
       });
-
     } else {
       const improvedHtmlWithHistory = `${improvedHtml}<br><br>${history}`;
       await browser.compose.setComposeDetails(tab.id, {
@@ -98,6 +104,8 @@ browser.composeAction.onClicked.addListener(async (tab) => {
 
     // Re-enable the button
     await browser.composeAction.enable(tab.id);
+  
+    // Error handling
   } catch (error) {
     console.error("Error improving writing style:", error);
     // Re-enable the button
@@ -111,6 +119,10 @@ browser.composeAction.onClicked.addListener(async (tab) => {
       ) {
         browser.runtime.openOptionsPage();
       }
+    } else if (error.message.includes("Cross-Origin")) {
+      alert(
+        "Ollama Requires to set 'OLLAMA_ORIGINS \"moz-extension://*\" see https://github.com/ollama/ollama/blob/main/docs/faq.md#how-can-i-allow-additional-web-origins-to-access-ollama."
+      );
     } else {
       alert(
         "Failed to improve writing. Please check your API key and try again."
@@ -123,15 +135,13 @@ async function promptAI(
   text,
   model,
   systemPrompt,
-  apiKey,
-  temperature,
-  maxTokens
+  api_settings
 ) {
-  if (!apiKey) {
-    throw new Error("API key not found");
-  }
-
-  // Configure API endpoint and headers based on model
+  const apiKey = api_settings.apiKey;
+  const temperature = api_settings.temperature;
+  const maxTokens = api_settings.maxTokens
+  
+  // 1. Configure API endpoint and headers based on model
   let apiEndpoint, headers, modelName;
   if (model.startsWith("openai:")) {
     apiEndpoint = "https://api.openai.com/v1/chat/completions";
@@ -153,11 +163,17 @@ async function promptAI(
       "Content-Type": "application/json",
     };
     modelName = model.split(":")[1];
+  } else if (model.startsWith("custom:")) {
+    apiEndpoint = api_settings.customApiEndpoint;
+    headers = {
+      "Content-Type": "application/json",
+    };
+    modelName = api_settings.customModel;
   } else {
     throw new Error("Unsupported model selected");
   }
 
-  // Prepare request body based on API
+  // 2. Prepare request body based on API
   let requestBody;
   if (model.startsWith("google:")) {
     requestBody = {
@@ -186,6 +202,7 @@ async function promptAI(
       ],
       temperature: temperature,
       max_tokens: maxTokens,
+      stream: false,
     };
   }
 
@@ -201,10 +218,15 @@ async function promptAI(
 
   const data = await response.json();
 
-  // Extract response based on API
+  // 3. Extract response based on API
+  let llm_result;
   if (model.startsWith("google:")) {
-    return data.candidates[0].content.parts[0].text;
+    llm_result = data.candidates[0].content.parts[0].text;
+  } else if (model.startsWith("custom:")) {
+    llm_result = data.message.content;
   } else {
-    return data.choices[0].message.content;
+    llm_result = data.choices[0].message.content;
   }
+
+  return sanetizeLLMResult(llm_result);
 }
