@@ -31,7 +31,7 @@ Settings can be accessed from the Thunderbird add-ons list.
 
 ### Privacy & Transparency
 
-- Your email content is only sent to the AI service when you click the "Improve Writing" button. Keep in mind that the AI service may handle and store your data according to their privacy policy. If your hardware supports it, use self-hosted models for better privacy.
+- Your email content is only sent to the AI service when you click the "Improve Writing" button. Keep in mind that the AI service may handle and store your data according to their privacy policy. If your hardware supports it, **use self-hosted models for better privacy**.
 - No data is stored locally except for your settings
 - API keys are stored securely in your browser's local storage.
 - The extension is **open-source** and kept **simple for transparency**. You can review the code and contribute to the project.
