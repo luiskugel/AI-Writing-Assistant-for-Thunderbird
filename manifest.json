@@ -1,9 +1,8 @@
 {
   "manifest_version": 2,
   "name": "AI Writing Assistant",
-  "version": "1.0",
-  "description": "Improve your email writing style using Groq AI",
-  "author": "Your Name",
+  "version": "0.2.0",
+  "description": "Improve your email writing style using AI.",
   "applications": {
     "gecko": {
       "id": "groq-writing-assistant@example.com",
