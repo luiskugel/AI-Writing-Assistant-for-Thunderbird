@@ -8,36 +8,38 @@ A Thunderbird extension that helps improve your email writing using various AI m
 
 ### Multiple AI Models Support
 
-| **OpenAI Models** | **Groq Models**         | **Google Models** |
-| ----------------- | ----------------------- | ----------------- |
-| GPT-4 Turbo       | Llama 3.3 70B Versatile | Gemini 2.0 Flash  |
-| GPT-4 Turbo Mini  | Llama 3.2 3B Preview    |                   |
-| GPT-3.5 Turbo     |                         |                   |
+| **OpenAI**        | **Groq**                | **Google**        | **Selfhosted/Other** |
+| ----------------- | ----------------------- | ----------------- | -------------------- |
+| GPT-4 Turbo       | Llama 3.3 70B Versatile | Gemini 2.0 Flash  | [Ollama](https://github.com/ollama/ollama?tab=readme-ov-file#model-library) (\*) |
+| GPT-4 Turbo Mini  | Llama 3.2 3B Preview    |                   |                      |
+| GPT-3.5 Turbo     |                         |                   |                      |
 
-API keys for at least one model are required to use the extension. You can obtain API keys from the respective AI service providers.
+API keys are required to use the extension with non-self-hosted models. You can obtain API keys from the respective AI service providers.
+
+(\*) Requires to set 'OLLAMA_ORIGINS "moz-extension://*" as described [here (github.com)](https://github.com/ollama/ollama/blob/main/docs/faq.md#how-can-i-allow-additional-web-origins-to-access-ollama).
 
 ### Customizable Settings
 
+- **Model Selection**: Choose your preferred AI model
+- **Custom Prompts**: Set your own prompt for email improvement
 - **Temperature Control**: Adjust the creativity level (0-2)
   - Lower values (0-1): More focused and deterministic responses
   - Higher values (1-2): More creative and diverse responses
 - **Max Tokens**: Control the maximum length of AI responses (1-4000)
-- **Custom Prompts**: Set your own prompt for email improvement
-- **Model Selection**: Choose your preferred AI model
 
 Settings can be accessed from the Thunderbird add-ons list.
 
 ### Privacy & Transparency
 
-- Your email content is only sent to the AI service when you click the improve button. Keep in mind that the AI service may handle and store your data according to their privacy policy.
+- Your email content is only sent to the AI service when you click the "Improve Writing" button. Keep in mind that the AI service may handle and store your data according to their privacy policy. If your hardware supports it, **use self-hosted models for better privacy**.
 - No data is stored locally except for your settings
 - API keys are stored securely in your browser's local storage.
 - The extension is **open-source** and kept **simple for transparency**. You can review the code and contribute to the project.
 
 ## 🚀 Installation
 
-1. Download the extension zib file from the releases page.
-2. In Thunderbird, go to **Tools > Add-ons**
+1. Download the extension '.zib' file from the releases page.
+2. In Thunderbird, go to _Tools > Add-ons_
 3. Click the gear icon > _Install Add-on From File_
 4. Choose the downloaded file
 
