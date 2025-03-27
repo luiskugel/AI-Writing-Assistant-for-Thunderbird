@@ -7,6 +7,8 @@ document.addEventListener("DOMContentLoaded", async () => {
     "apiKey",
     "temperature",
     "maxTokens",
+    "customApiEndpoint",
+    "customModel",
     "useConversationHistory",
   ]); 
   if (result.selectedModel) {
