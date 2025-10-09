@@ -158,11 +158,11 @@ async function promptAI(
     };
     modelName = model.split(":")[1];
   } else if (model.startsWith("google:")) {
-    apiEndpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+    modelName = model.split(":")[1];
+    apiEndpoint = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${apiKey}`;
     headers = {
       "Content-Type": "application/json",
     };
-    modelName = model.split(":")[1];
   } else if (model.startsWith("custom:")) {
     apiEndpoint = api_settings.customApiEndpoint;
     headers = {
@@ -201,7 +201,7 @@ async function promptAI(
         },
       ],
       temperature: temperature,
-      max_tokens: maxTokens,
+      max_completion_tokens: maxTokens,
       stream: false,
     };
   }
