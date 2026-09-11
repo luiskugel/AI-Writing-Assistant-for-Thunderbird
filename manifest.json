@@ -1,7 +1,7 @@
 {
   "manifest_version": 2,
   "name": "AI Writing Assistant",
-  "version": "0.3.0",
+  "version": "0.5.0",
   "description": "Improve your email writing style using AI.",
   "applications": {
     "gecko": {
@@ -17,7 +17,9 @@
     "https://generativelanguage.googleapis.com/*"
   ],
   "background": {
-    "scripts": ["background.js"]
+    "scripts": [
+      "background.js"
+    ]
   },
   "options_ui": {
     "page": "options.html",
