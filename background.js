@@ -163,6 +163,7 @@ async function promptAI(
     headers = {
       "Content-Type": "application/json",
     };
+    console.log("Using Gemini API endpoint:", apiEndpoint.replace(apiKey, '***'));
   } else if (model.startsWith("custom:")) {
     apiEndpoint = api_settings.customApiEndpoint;
     headers = {
@@ -177,15 +178,27 @@ async function promptAI(
   let requestBody;
   if (model.startsWith("google:")) {
     requestBody = {
+      systemInstruction: {
+        parts: [
+          {
+            text: systemPrompt,
+          },
+        ],
+      },
       contents: [
         {
+          role: "user",
           parts: [
             {
-              text: `${systemPrompt}\n\n${text}`,
+              text: text,
             },
           ],
         },
       ],
+      generationConfig: {
+        temperature: temperature,
+        maxOutputTokens: maxTokens,
+      },
     };
   } else {
     requestBody = {
@@ -201,7 +214,7 @@ async function promptAI(
         },
       ],
       temperature: temperature,
-      max_completion_tokens: maxTokens,
+      max_tokens: maxTokens,
       stream: false,
     };
   }
@@ -213,7 +226,17 @@ async function promptAI(
   });
 
   if (!response.ok) {
-    throw new Error("API request failed");
+    let errorDetail = `HTTP ${response.status} ${response.statusText}`;
+    try {
+      const errorBody = await response.json();
+      console.error("API error response:", JSON.stringify(errorBody));
+      if (errorBody.error) {
+        errorDetail = errorBody.error.message || errorBody.error.status || errorDetail;
+      }
+    } catch (e) {
+      // couldn't parse error body
+    }
+    throw new Error(`API request failed: ${errorDetail}`);
   }
 
   const data = await response.json();

@@ -1,7 +1,7 @@
 {
   "manifest_version": 2,
   "name": "AI Writing Assistant",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Improve your email writing style using AI.",
   "applications": {
     "gecko": {
