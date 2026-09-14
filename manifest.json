@@ -2,10 +2,11 @@
   "manifest_version": 2,
   "name": "AI Writing Assistant",
   "version": "0.5.0",
-  "description": "Improve your email writing style using AI.",
+  "author": "ABSONS Technologies",
+  "description": "Improve your email writing using AI.",
   "applications": {
     "gecko": {
-      "id": "groq-writing-assistant@example.com",
+      "id": "ai-writing-assistant-thunderbird@absons.net",
       "strict_min_version": "78.0"
     }
   },
