@@ -1,7 +1,7 @@
 {
   "manifest_version": 2,
   "name": "AI Writing Assistant",
-  "version": "0.5.7",
+  "version": "0.5.9",
   "author": "ABSONS Technologies",
   "description": "Improve your email writing using AI.",
   "applications": {
