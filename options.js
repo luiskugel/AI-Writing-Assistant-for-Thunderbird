@@ -142,11 +142,6 @@ Only the section between <!-- BEGIN DRAFT --> and <!-- END DRAFT --> should be r
   // Display version number
   const manifest = browser.runtime.getManifest();
   document.getElementById("versionLabel").textContent = `Version ${manifest.version}`;
-
-  // Check for updates — opens Thunderbird's Add-ons Manager
-  document.getElementById("checkUpdateBtn").addEventListener("click", () => {
-    browser.tabs.create({ url: "about:addons" });
-  });
 });
 
 function showStatus(message, type) {
