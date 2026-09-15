@@ -1,11 +1,12 @@
 {
   "manifest_version": 2,
   "name": "AI Writing Assistant",
-  "version": "0.2.0",
-  "description": "Improve your email writing style using AI.",
+  "version": "0.5.9",
+  "author": "ABSONS Technologies",
+  "description": "Improve your email writing using AI.",
   "applications": {
     "gecko": {
-      "id": "groq-writing-assistant@example.com",
+      "id": "ai-writing-assistant-thunderbird@absons.net",
       "strict_min_version": "78.0"
     }
   },
@@ -17,7 +18,9 @@
     "https://generativelanguage.googleapis.com/*"
   ],
   "background": {
-    "scripts": ["background.js"]
+    "scripts": [
+      "background.js"
+    ]
   },
   "options_ui": {
     "page": "options.html",
@@ -25,6 +28,7 @@
   },
   "compose_action": {
     "default_title": "Improve Writing",
+    "default_popup": "popup.html",
     "default_icon": {
       "32": "icons/pencil-32.png",
       "64": "icons/pencil-64.png"

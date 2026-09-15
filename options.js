@@ -10,7 +10,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     "customApiEndpoint",
     "customModel",
     "useConversationHistory",
-  ]); 
+  ]);
   if (result.selectedModel) {
     document.getElementById("model").value = result.selectedModel;
   }
@@ -20,7 +20,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   if (result.promptImprove) {
     document.getElementById("promptImprove").value = result.promptImprove;
   } else {
-    document.getElementById("promptImprove").value =`You will receive an email in HTML or plain text format, along with a context history. Your task is to revise the email draft only. Use the context solely for informational guidance - do NOT include it in your output.
+    document.getElementById("promptImprove").value = `You will receive an email in HTML or plain text format, along with a context history. Your task is to revise the email draft only. Use the context solely for informational guidance - do NOT include it in your output.
 Rules:
 1. Structure: Clear, logical, and easy to read.
 2. Language:
@@ -31,6 +31,7 @@ Rules:
 5. Format: Return only HTML - no metadata, no subject line, no additional explanations.
 6. HTML structure: Keep <html>, <body>, etc., exactly as in the draft. Leave open tags open if they are open in the draft.
 7. Signature (if present): Do not modify.
+8. Date & day-of-week validation: If the draft mentions a specific date together with a day of the week, verify that the day-of-week is correct for that date. If there is a mismatch (e.g., "Friday September 17, 2026" when September 17, 2026 is actually a Thurs day), silently correct the day to the accurate one. Apply this check to all date-day combinations in the draft.
 
 Only the section between <!-- BEGIN DRAFT --> and <!-- END DRAFT --> should be revised. The section between <!-- BEGIN CONTEXT --> and <!-- END CONTEXT --> is for reference only.`;
   }
@@ -60,7 +61,7 @@ Only the section between <!-- BEGIN DRAFT --> and <!-- END DRAFT --> should be r
   } else {
     document.getElementById("useConversationHistory").checked = true;
   }
-  
+
   // Handle conditional display of inputs
   const modelSelect = document.getElementById("model");
   modelSelect.addEventListener("change", () => {
@@ -137,6 +138,10 @@ Only the section between <!-- BEGIN DRAFT --> and <!-- END DRAFT --> should be r
       showStatus("Error saving settings: " + error.message, "error");
     }
   });
+
+  // Display version number
+  const manifest = browser.runtime.getManifest();
+  document.getElementById("versionLabel").textContent = `Version ${manifest.version}`;
 });
 
 function showStatus(message, type) {

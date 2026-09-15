@@ -1,5 +1,8 @@
 # AI Writing Assistant for Thunderbird
 
+> **Published by [ABSONS Technologies](https://absons.net)**
+> This is a fork of the original [AI Writing Assistant for Thunderbird](https://github.com/marcoheinisch/AI-Writing-Assistant-for-Thunderbird) by Luis Kugel & Marco Heinisch.
+
 A Thunderbird extension that helps improve your email writing using various AI models (LLMs) and customizable prompts. This extension can enhance your email's writing style, tone, and formatting while maintaining the original message.
 
 ## ✨ Features
@@ -38,10 +41,25 @@ Settings can be accessed from the Thunderbird add-ons list.
 
 ## 🚀 Installation
 
-1. Download the extension '.zib' file from the releases page.
-2. In Thunderbird, go to _Tools > Add-ons_
-3. Click the gear icon > _Install Add-on From File_
-4. Choose the downloaded file
+You can install the extension using any of the following methods:
+
+### Option 1: Search in Thunderbird (Recommended)
+
+1. In Thunderbird, go to _Tools > Add-ons and Themes_
+2. Search for **"AI Writing Assistant"**
+3. Click **Install**
+
+### Option 2: Install from Thunderbird Add-ons Page
+
+1. Visit the [AI Writing Assistant on Thunderbird Add-ons](https://addons.thunderbird.net/en-US/thunderbird/addon/ai-writing-assistant/)
+2. Click **"Add to Thunderbird"**
+
+### Option 3: Manual Install from GitHub
+
+1. Download the latest [addon.xpi](https://github.com/absonsnet/AI-Writing-Assistant-for-Thunderbird/releases/latest/download/addon.xpi) from GitHub Releases
+2. In Thunderbird, go to _Tools > Add-ons and Themes_
+3. Click the gear icon ⚙️ > _Install Add-on From File_
+4. Select the downloaded `addon.xpi` file
 
 ### First-Time Setup
 
@@ -80,5 +98,13 @@ We welcome bug reports and pull requests! See our [CONTRIBUTING.md](CONTRIBUTING
 ## License
 
 This project is licensed under the [Apache License 2.0](LICENSE) - see the [LICENSE](LICENSE) file for details.
+
+### Original Work Attribution
+
+This extension is a derivative work based on the original
+[AI Writing Assistant for Thunderbird](https://github.com/marcoheinisch/AI-Writing-Assistant-for-Thunderbird)
+created by **Luis Kugel** and **Marco Heinisch** (Copyright 2025).
+
+See the [NOTICE](NOTICE) file for full attribution details as required by the Apache License 2.0.
 
 Icons adapted from [pepicons](https://github.com/CyCraft/pepicons/) (CC BY 4.0).
