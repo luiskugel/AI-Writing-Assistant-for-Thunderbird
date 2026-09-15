@@ -31,6 +31,7 @@ jobs:
           name: Release ${{ github.ref_name }}
           draft: false
           prerelease: false
+          generate_release_notes: true
 
       - name: Publish to Thunderbird Add-ons
         uses: kewisch/action-web-ext@v2
@@ -41,4 +42,10 @@ jobs:
           apiUrlPrefix: "https://addons.thunderbird.net/api/v4"
           apiKey: ${{ secrets.THUNDERBIRD_API_KEY }}
           apiSecret: ${{ secrets.THUNDERBIRD_API_SECRET }}
+          releaseNotes: |
+            - Added a new Review Popup to preview changes in a diff view before inserting
+            - Added 'Try Again' functionality to re-run the AI
+            - Added date and day-of-week validation to the default AI prompt
+            - Minor UI adjustments on the options page
+          approvalNotes: "Added a popup UI to review AI changes before inserting them into the compose window."
 
