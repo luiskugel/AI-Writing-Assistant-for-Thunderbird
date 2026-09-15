@@ -1,0 +1,417 @@
+/* ===================================================
+   AI Writing Assistant — Review Popup Styles
+   =================================================== */
+
+/* — Reset & Base — */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+:root {
+  /* Thunderbird-aligned palette */
+  --color-primary: #0060df;
+  --color-primary-hover: #003eaa;
+  --color-primary-light: rgba(0, 96, 223, 0.08);
+
+  --color-bg: #ffffff;
+  --color-surface: #f9f9fb;
+  --color-border: #e0e0e6;
+  --color-text: #15141a;
+  --color-text-secondary: #5b5b66;
+
+  /* Diff palette */
+  --diff-add-bg: #dafbe1;
+  --diff-add-text: #116329;
+  --diff-add-border: #aceebb;
+  --diff-del-bg: #ffebe9;
+  --diff-del-text: #82071e;
+  --diff-del-border: #ffcecb;
+
+  /* Spacing */
+  --radius: 8px;
+  --radius-sm: 6px;
+}
+
+body {
+  width: 520px;
+  min-height: 200px;
+  max-height: 600px;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+    Helvetica, Arial, sans-serif;
+  font-size: 13px;
+  color: var(--color-text);
+  background: var(--color-bg);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* ===================================================
+   Loading State
+   =================================================== */
+.loading-state {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 1;
+  min-height: 220px;
+  padding: 40px 20px;
+}
+
+.loading-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+}
+
+/* Spinner ring */
+.spinner-ring {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  border: 3px solid var(--color-border);
+  border-top-color: var(--color-primary);
+  animation: spin 0.9s linear infinite;
+  position: relative;
+}
+
+.spinner-ring-inner {
+  position: absolute;
+  inset: 4px;
+  border-radius: 50%;
+  border: 3px solid transparent;
+  border-top-color: rgba(0, 96, 223, 0.3);
+  animation: spin 1.4s linear infinite reverse;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.loading-label {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.loading-sublabel {
+  font-size: 12px;
+  color: var(--color-text-secondary);
+  margin-top: -8px;
+}
+
+/* Animated dots */
+.loading-dots::after {
+  content: "";
+  animation: dots 1.5s steps(4, end) infinite;
+}
+
+@keyframes dots {
+  0%  { content: ""; }
+  25% { content: "."; }
+  50% { content: ".."; }
+  75% { content: "..."; }
+}
+
+/* ===================================================
+   Error State
+   =================================================== */
+.error-state {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 1;
+  min-height: 220px;
+  padding: 40px 20px;
+}
+
+.error-content {
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+.error-icon {
+  font-size: 36px;
+  line-height: 1;
+  color: #e22850;
+}
+
+.error-message {
+  font-size: 13px;
+  color: var(--color-text-secondary);
+  max-width: 360px;
+  line-height: 1.5;
+}
+
+.error-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+/* ===================================================
+   Review State
+   =================================================== */
+.review-state {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  max-height: 600px;
+}
+
+/* — Tab Bar — */
+.tab-bar {
+  display: flex;
+  gap: 2px;
+  padding: 8px 12px 0;
+  border-bottom: 1px solid var(--color-border);
+  background: var(--color-surface);
+  flex-shrink: 0;
+}
+
+.tab-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  border: none;
+  background: transparent;
+  color: var(--color-text-secondary);
+  font-size: 12.5px;
+  font-weight: 500;
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+  border-radius: var(--radius-sm) var(--radius-sm) 0 0;
+  transition: color 0.15s, border-color 0.15s, background 0.15s;
+}
+
+.tab-btn:hover {
+  color: var(--color-text);
+  background: rgba(0, 0, 0, 0.04);
+}
+
+.tab-btn.active {
+  color: var(--color-primary);
+  border-bottom-color: var(--color-primary);
+  font-weight: 600;
+}
+
+.tab-btn svg {
+  flex-shrink: 0;
+  opacity: 0.7;
+}
+
+.tab-btn.active svg {
+  opacity: 1;
+}
+
+/* — Tab Content — */
+.tab-content {
+  display: none;
+  flex: 1;
+  overflow-y: auto;
+  padding: 14px;
+}
+
+.tab-content.active {
+  display: block;
+}
+
+/* ===================================================
+   Diff View (Changes tab)
+   =================================================== */
+.diff-container {
+  font-size: 13px;
+  line-height: 1.75;
+  padding: 12px 16px;
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+/* Added text */
+.diff-add {
+  background: var(--diff-add-bg);
+  color: var(--diff-add-text);
+  border-bottom: 2px solid var(--diff-add-border);
+  padding: 1px 3px;
+  border-radius: 3px;
+  text-decoration: none;
+}
+
+/* Deleted text */
+.diff-del {
+  background: var(--diff-del-bg);
+  color: var(--diff-del-text);
+  border-bottom: 2px solid var(--diff-del-border);
+  padding: 1px 3px;
+  border-radius: 3px;
+  text-decoration: line-through;
+}
+
+/* Legend */
+.diff-legend {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 10px;
+  font-size: 11.5px;
+  color: var(--color-text-secondary);
+}
+
+.diff-legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.diff-legend-swatch {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  border-radius: 3px;
+}
+
+.diff-legend-swatch.del {
+  background: var(--diff-del-bg);
+  border: 1px solid var(--diff-del-border);
+}
+
+.diff-legend-swatch.add {
+  background: var(--diff-add-bg);
+  border: 1px solid var(--diff-add-border);
+}
+
+/* ===================================================
+   Final View (Final tab)
+   =================================================== */
+.final-toggle-bar {
+  display: flex;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  margin-bottom: 12px;
+  flex-shrink: 0;
+}
+
+.toggle-btn {
+  flex: 1;
+  padding: 7px 12px;
+  border: none;
+  background: transparent;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  transition: all 0.15s;
+  position: relative;
+}
+
+.toggle-btn:first-child {
+  border-right: 1px solid var(--color-border);
+}
+
+.toggle-btn.active {
+  background: var(--color-primary);
+  color: #fff;
+  font-weight: 600;
+}
+
+.toggle-btn:not(.active):hover {
+  background: rgba(0, 0, 0, 0.04);
+}
+
+.final-container {
+  font-size: 13px;
+  line-height: 1.75;
+  padding: 12px 16px;
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+/* ===================================================
+   Action Bar (bottom)
+   =================================================== */
+.action-bar {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  padding: 10px 14px;
+  border-top: 1px solid var(--color-border);
+  background: var(--color-surface);
+  flex-shrink: 0;
+}
+
+/* ===================================================
+   Buttons
+   =================================================== */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 16px;
+  border: none;
+  border-radius: var(--radius-sm);
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s, box-shadow 0.15s, transform 0.1s;
+}
+
+.btn:active {
+  transform: scale(0.97);
+}
+
+.btn-primary {
+  background: var(--color-primary);
+  color: #fff;
+}
+
+.btn-primary:hover {
+  background: var(--color-primary-hover);
+}
+
+.btn-secondary {
+  background: transparent;
+  color: var(--color-text-secondary);
+  border: 1px solid var(--color-border);
+}
+
+.btn-secondary:hover {
+  background: rgba(0, 0, 0, 0.05);
+  color: var(--color-text);
+}
+
+/* ===================================================
+   Scrollbar
+   =================================================== */
+.tab-content::-webkit-scrollbar {
+  width: 6px;
+}
+
+.tab-content::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.tab-content::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.15);
+  border-radius: 3px;
+}
+
+.tab-content::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.25);
+}

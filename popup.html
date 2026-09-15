@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Review Improvements</title>
+    <link rel="stylesheet" href="popup.css" />
+  </head>
+  <body>
+    <!-- Loading State -->
+    <div id="loadingState" class="loading-state">
+      <div class="loading-content">
+        <div class="spinner-ring">
+          <div class="spinner-ring-inner"></div>
+        </div>
+        <p class="loading-label">Improving your writing<span class="loading-dots"></span></p>
+        <p class="loading-sublabel">This may take a few seconds</p>
+      </div>
+    </div>
+
+    <!-- Error State -->
+    <div id="errorState" class="error-state" style="display: none;">
+      <div class="error-content">
+        <div class="error-icon">⚠</div>
+        <p id="errorMessage" class="error-message">Something went wrong.</p>
+        <div class="error-actions">
+          <button id="errorRetryBtn" class="btn btn-primary">Try Again</button>
+          <button id="errorSettingsBtn" class="btn btn-secondary">Open Settings</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Review State -->
+    <div id="reviewState" class="review-state" style="display: none;">
+      <!-- Tab Bar -->
+      <div class="tab-bar">
+        <button class="tab-btn active" data-tab="changes" id="tabChanges">
+          <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor">
+            <path d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4z"/>
+            <path d="M2 1a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v14a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V1zm11 0H3v14h10V1z"/>
+          </svg>
+          Changes
+        </button>
+        <button class="tab-btn" data-tab="final" id="tabFinal">
+          <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor">
+            <path d="M12.736 3.97a.733.733 0 0 1 1.047 0c.286.289.29.756.01 1.05L7.88 12.01a.733.733 0 0 1-1.065.02L3.217 8.384a.757.757 0 0 1 0-1.06.733.733 0 0 1 1.047 0l3.052 3.093 5.4-6.425a.247.247 0 0 1 .02-.022z"/>
+          </svg>
+          Final
+        </button>
+      </div>
+
+      <!-- Tab Content: Changes (Diff View) -->
+      <div class="tab-content active" id="changesPanel">
+        <div class="diff-container" id="diffOutput"></div>
+      </div>
+
+      <!-- Tab Content: Final (Clean View) -->
+      <div class="tab-content" id="finalPanel">
+        <div class="final-toggle-bar">
+          <button class="toggle-btn active" id="toggleImproved">Improved</button>
+          <button class="toggle-btn" id="toggleOriginal">Original</button>
+        </div>
+        <div class="final-container" id="finalOutput"></div>
+      </div>
+
+      <!-- Action Bar -->
+      <div class="action-bar">
+        <button id="tryAgainBtn" class="btn btn-secondary">
+          <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor">
+            <path fill-rule="evenodd" d="M8 3a5 5 0 1 0 4.546 2.914.5.5 0 0 1 .908-.417A6 6 0 1 1 8 2v1z"/>
+            <path d="M8 4.466V.534a.25.25 0 0 1 .41-.192l2.36 1.966c.12.1.12.284 0 .384L8.41 4.658A.25.25 0 0 1 8 4.466z"/>
+          </svg>
+          Try Again
+        </button>
+        <button id="insertBtn" class="btn btn-primary">
+          <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor">
+            <path d="M12.736 3.97a.733.733 0 0 1 1.047 0c.286.289.29.756.01 1.05L7.88 12.01a.733.733 0 0 1-1.065.02L3.217 8.384a.757.757 0 0 1 0-1.06.733.733 0 0 1 1.047 0l3.052 3.093 5.4-6.425a.247.247 0 0 1 .02-.022z"/>
+          </svg>
+          Insert
+        </button>
+      </div>
+    </div>
+
+    <script src="popup.js"></script>
+  </body>
+</html>

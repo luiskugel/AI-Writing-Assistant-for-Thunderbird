@@ -28,6 +28,7 @@
   },
   "compose_action": {
     "default_title": "Improve Writing",
+    "default_popup": "popup.html",
     "default_icon": {
       "32": "icons/pencil-32.png",
       "64": "icons/pencil-64.png"

@@ -2,16 +2,6 @@ function trimStringWithEllipsis(str, n) {
   return str.length > n ? str.substring(0, n) + '...' : str;
 }
 
-function splitHtmlByTag(htmlString, tagName) {
-  const index = htmlString.indexOf(tagName);
-  if (index === -1) {
-    return [htmlString, '']; // tag not found
-  }
-  const before = htmlString.slice(0, index);
-  const after = htmlString.slice(index);
-  return [before, after];
-}
-
 function sanetizeLLMResult(llm_result) {
   llm_result = llm_result.replace("```html", '');
   llm_result = llm_result.replace("```", '');
@@ -33,16 +23,19 @@ browser.runtime.onInstalled.addListener(async () => {
   }
 });
 
-// Listen for the compose action button click
-browser.composeAction.onClicked.addListener(async (tab) => {
-  // Get the current compose window
-  const composeWindow = await browser.compose.getComposeDetails(tab.id);
+// ===================================================
+//  Message handler — popup sends requests here
+// ===================================================
+browser.runtime.onMessage.addListener(async (message, sender) => {
+  if (message.action === "improve") {
+    return handleImprove(message);
+  } else if (message.action === "html2text") {
+    return handleHtml2Text(message);
+  }
+});
 
+async function handleImprove(message) {
   try {
-    // Disable the button while processing
-    await browser.composeAction.disable(tab.id);
-
-    // Get the custom prompt and model from settings
     const settings = await browser.storage.local.get([
       "promptImprove",
       "promptHtml2Text",
@@ -56,81 +49,65 @@ browser.composeAction.onClicked.addListener(async (tab) => {
       "customApiEndpoint",
       "customModel"
     ]);
-    const promptImprove = settings.promptImprove;
-    const promptHtml2Text = settings.promptHtml2Text;
-    const selectedModel = settings.selectedModel;
-    const useConversationHistory = settings.useConversationHistory;
-    
-    // Split the draft from the history
-    const [draft, history] = splitHtmlByTag(composeWindow.body, '<div class="moz-cite-prefix">');
-    if (!draft.trim()) {
-      throw new Error("Draft is empty. Please write an email before using the AI.");
+
+    if (!api_settings.apiKey) {
+      return { error: "API key not found. Please set your API key in settings." };
     }
 
-    let history_trimmed = trimStringWithEllipsis(history, 3000);
+    const selectedModel = settings.selectedModel;
+    const useConversationHistory = settings.useConversationHistory;
+    const promptImprove = settings.promptImprove;
+
+    let history_trimmed = trimStringWithEllipsis(message.history || "", 3000);
     if (!useConversationHistory) {
       history_trimmed = "";
     }
 
-    // Improve the writing of the draft
     const improvedHtml = await promptAI(
-      `<!--BEGIN DRAFT-->\n${draft}\n<!--END DRAFT-->\n<!-- BEGIN CONTEXT -->\n${history_trimmed}\n<!-- END CONTEXT -->`,
+      `<!--BEGIN DRAFT-->\n${message.draft}\n<!--END DRAFT-->\n<!-- BEGIN CONTEXT -->\n${history_trimmed}\n<!-- END CONTEXT -->`,
       selectedModel,
       promptImprove,
       api_settings
     );
 
-    // Join the improved text with the history and update the compose window
-    // Depending on plain text or HTML different compose details must be set
-    if (composeWindow.isPlainText) {
-      const improvedText = await promptAI(
-        improvedHtml,
-        selectedModel,
-        promptHtml2Text, 
-        api_settings
-      );
-      const improvedTextWithHistory = `${improvedText}\n\n${history}`;
-      await browser.compose.setComposeDetails(tab.id, {
-        ...composeWindow,
-        plainTextBody: improvedTextWithHistory,
-      });
-    } else {
-      const improvedHtmlWithHistory = `${improvedHtml}<br><br>${history}`;
-      await browser.compose.setComposeDetails(tab.id, {
-        ...composeWindow,
-        body: improvedHtmlWithHistory,
-      });
-    }
-
-    // Re-enable the button
-    await browser.composeAction.enable(tab.id);
-  
-    // Error handling
+    return { improved: improvedHtml };
   } catch (error) {
-    console.error("Error improving writing style:", error);
-    // Re-enable the button
-    await browser.composeAction.enable(tab.id);
-    // Show error notification with option to open settings
-    if (error.message.includes("API key not found")) {
-      if (
-        confirm(
-          "API key not found. Would you like to open the settings page to set up your API key?"
-        )
-      ) {
-        browser.runtime.openOptionsPage();
-      }
-    } else if (error.message.includes("Cross-Origin")) {
-      alert(
-        "Ollama Requires to set 'OLLAMA_ORIGINS \"moz-extension://*\" see https://github.com/ollama/ollama/blob/main/docs/faq.md#how-can-i-allow-additional-web-origins-to-access-ollama."
-      );
-    } else {
-      alert(
-        "Failed to improve writing. Please check your API key and try again."
-      );
-    }
+    console.error("Error in handleImprove:", error);
+    return { error: error.message };
   }
-});
+}
 
+async function handleHtml2Text(message) {
+  try {
+    const settings = await browser.storage.local.get([
+      "promptHtml2Text",
+      "selectedModel"
+    ]);
+    const api_settings = await browser.storage.local.get([
+      "apiKey",
+      "temperature",
+      "maxTokens",
+      "customApiEndpoint",
+      "customModel"
+    ]);
+
+    const plainText = await promptAI(
+      message.html,
+      settings.selectedModel,
+      settings.promptHtml2Text,
+      api_settings
+    );
+
+    return plainText;
+  } catch (error) {
+    console.error("Error in handleHtml2Text:", error);
+    return { error: error.message };
+  }
+}
+
+// ===================================================
+//  AI prompt function (unchanged logic)
+// ===================================================
 async function promptAI(
   text,
   model,
