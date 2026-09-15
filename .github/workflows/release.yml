@@ -1,0 +1,33 @@
+name: Create Thunderbird Addon Release
+
+on:
+  push:
+    tags:
+      - 'v*' # Triggers the workflow only when tags starting with 'v' are pushed (e.g., v1.0.0)
+
+jobs:
+  build-and-release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write # Crucial permission allowing GitHub Actions to create releases
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Build Thunderbird Addon (.xpi)
+        run: |
+          # Zip the extension files into an .xpi file.
+          # Exclude git/GitHub metadata files or unnecessary development scripts.
+          zip -r addon.xpi . -x "*.git*" ".github*" "README.md"
+          
+          # Note: If your source files live inside a specific folder like 'src/', 
+          # change the line above to: cd src && zip -r ../addon.xpi .
+
+      - name: Create Release and Upload Asset
+        uses: softprops/action-gh-release@v2
+        with:
+          files: addon.xpi
+          name: Release ${{ github.ref_name }}
+          draft: false
+          prerelease: false
