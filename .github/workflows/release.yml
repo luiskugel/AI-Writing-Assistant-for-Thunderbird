@@ -81,5 +81,4 @@ jobs:
           apiUrlPrefix: "https://addons.thunderbird.net/api/v4"
           apiKey: ${{ secrets.THUNDERBIRD_API_KEY }}
           apiSecret: ${{ secrets.THUNDERBIRD_API_SECRET }}
-          releaseNotes: ${{ env.AI_NOTES }}
 
