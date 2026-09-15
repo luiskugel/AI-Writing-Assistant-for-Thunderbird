@@ -14,6 +14,8 @@ jobs:
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Build Thunderbird Addon (.xpi)
         run: |
@@ -24,6 +26,43 @@ jobs:
           # Note: If your source files live inside a specific folder like 'src/', 
           # change the line above to: cd src && zip -r ../addon.xpi .
 
+      - name: Generate AI Release Notes via Gemini
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+        run: |
+          # 1. Get raw commits since last tag
+          PREVIOUS_TAG=$(git describe --tags --abbrev=0 HEAD^ 2>/dev/null || echo "")
+          if [ -z "$PREVIOUS_TAG" ]; then
+            RAW_COMMITS=$(git log --pretty=format:"- %s")
+          else
+            RAW_COMMITS=$(git log ${PREVIOUS_TAG}..HEAD --pretty=format:"- %s")
+          fi
+
+          # 2. Build the prompt for Gemini
+          PROMPT="You are a technical writer. I will provide a list of raw git commit messages. Please summarize them into a clean, professional, bulleted list of release notes. Remove useless noise like 'version bump' or 'update manifest', combine related changes, and format it clearly in markdown. Do not include introductory text, just the bullet points. Commits: "
+          
+          # 3. Create JSON payload securely using jq
+          PAYLOAD=$(jq -n --arg p "$PROMPT" --arg c "$RAW_COMMITS" '{contents: [{parts: [{text: ($p + "\n" + $c)}]}]}')
+          
+          # 4. Call Gemini API
+          RESPONSE=$(curl -s -X POST "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash-lite:generateContent?key=$GEMINI_API_KEY" \
+            -H 'Content-Type: application/json' \
+            -d "$PAYLOAD")
+            
+          # 5. Extract text from response and save to file
+          echo "$RESPONSE" | jq -r '.candidates[0].content.parts[0].text' > release_notes.md
+          
+          # Fallback if API fails or returns null
+          if [ ! -s release_notes.md ] || grep -q "^null$" release_notes.md; then
+            echo "$RAW_COMMITS" > release_notes.md
+          fi
+
+          # 6. Load into GitHub Environment Variable for later steps
+          EOF=$(dd if=/dev/urandom bs=15 count=1 status=none | base64)
+          echo "AI_NOTES<<$EOF" >> $GITHUB_ENV
+          cat release_notes.md >> $GITHUB_ENV
+          echo "$EOF" >> $GITHUB_ENV
+
       - name: Create Release and Upload Asset
         uses: softprops/action-gh-release@v2
         with:
@@ -31,7 +70,7 @@ jobs:
           name: Release ${{ github.ref_name }}
           draft: false
           prerelease: false
-          generate_release_notes: true
+          body_path: release_notes.md
 
       - name: Publish to Thunderbird Add-ons
         uses: kewisch/action-web-ext@v2
@@ -42,10 +81,5 @@ jobs:
           apiUrlPrefix: "https://addons.thunderbird.net/api/v4"
           apiKey: ${{ secrets.THUNDERBIRD_API_KEY }}
           apiSecret: ${{ secrets.THUNDERBIRD_API_SECRET }}
-          releaseNotes: |
-            - Added a new Review Popup to preview changes in a diff view before inserting
-            - Added 'Try Again' functionality to re-run the AI
-            - Added date and day-of-week validation to the default AI prompt
-            - Minor UI adjustments on the options page
-          approvalNotes: "Added a popup UI to review AI changes before inserting them into the compose window."
+          releaseNotes: ${{ env.AI_NOTES }}
 
