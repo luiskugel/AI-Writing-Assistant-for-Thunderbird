@@ -31,3 +31,14 @@ jobs:
           name: Release ${{ github.ref_name }}
           draft: false
           prerelease: false
+
+      - name: Publish to Thunderbird Add-ons
+        uses: kewisch/action-web-ext@v2
+        with:
+          cmd: sign
+          source: addon.xpi
+          channel: listed
+          apiUrlPrefix: "https://addons.thunderbird.net/api/v4"
+          apiKey: ${{ secrets.THUNDERBIRD_API_KEY }}
+          apiSecret: ${{ secrets.THUNDERBIRD_API_SECRET }}
+
