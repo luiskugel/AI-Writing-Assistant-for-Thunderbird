@@ -65,11 +65,6 @@ async function handleImprove(message) {
 
     let systemPrompt = promptImprove;
 
-    // Fix conflicting signature rule from default settings
-    systemPrompt = systemPrompt.replace(
-      "7. Signature (if present): Do not modify.",
-      "7. Signature (if present): Only correct the capitalization of the salutation (e.g., Best regards, Sincerely etc) and the name following it. Do not modify anything else."
-    );
 
 
 
