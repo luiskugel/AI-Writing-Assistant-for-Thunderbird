@@ -8,6 +8,8 @@ let improvedDraft = "";
 let conversationHistory = "";
 let currentTabId = null;
 let isPlainText = false;
+let isNewEmail = false;
+let suggestedSubjects = [];
 
 // ---- DOM refs ----
 const loadingState = document.getElementById("loadingState");
@@ -16,6 +18,9 @@ const reviewState = document.getElementById("reviewState");
 const errorMessage = document.getElementById("errorMessage");
 const diffOutput = document.getElementById("diffOutput");
 const finalOutput = document.getElementById("finalOutput");
+const subjectSuggestionContainer = document.getElementById("subjectSuggestionContainer");
+const suggestedSubjectInput = document.getElementById("suggestedSubjectInput");
+const subjectChipsContainer = document.getElementById("subjectChipsContainer");
 
 // ---- Bootstrap ----
 document.addEventListener("DOMContentLoaded", () => {
@@ -91,6 +96,12 @@ async function handleInsert() {
       currentTabId
     );
 
+    let detailsToUpdate = { ...composeWindow };
+    
+    if (isNewEmail && suggestedSubjectInput.value.trim() !== "") {
+      detailsToUpdate.subject = suggestedSubjectInput.value.trim();
+    }
+
     if (isPlainText) {
       // Ask background to convert HTML → plaintext
       const plainText = await browser.runtime.sendMessage({
@@ -99,16 +110,12 @@ async function handleInsert() {
         tabId: currentTabId,
       });
       const body = plainText + "\n\n" + conversationHistory;
-      await browser.compose.setComposeDetails(currentTabId, {
-        ...composeWindow,
-        plainTextBody: body,
-      });
+      detailsToUpdate.plainTextBody = body;
+      await browser.compose.setComposeDetails(currentTabId, detailsToUpdate);
     } else {
       const body = improvedDraft + "<br><br>" + conversationHistory;
-      await browser.compose.setComposeDetails(currentTabId, {
-        ...composeWindow,
-        body: body,
-      });
+      detailsToUpdate.body = body;
+      await browser.compose.setComposeDetails(currentTabId, detailsToUpdate);
     }
 
     window.close();
@@ -162,6 +169,7 @@ async function startImprovement() {
       currentTabId
     );
     isPlainText = composeWindow.isPlainText;
+    isNewEmail = composeWindow.type === "new";
 
     // Split draft from conversation history
     const [draft, history] = splitHtmlByTag(
@@ -179,11 +187,45 @@ async function startImprovement() {
       draft: draft,
       history: history,
       tabId: currentTabId,
+      isNewEmail: isNewEmail
     });
 
     if (result.error) throw new Error(result.error);
 
     improvedDraft = result.improved;
+
+    // Parse subjects if it's a new email
+    suggestedSubjects = [];
+    if (isNewEmail) {
+      const subjectRegex = /<subject>(.*?)<\/subject>/gi;
+      let match;
+      while ((match = subjectRegex.exec(improvedDraft)) !== null) {
+        suggestedSubjects.push(match[1].trim());
+      }
+      improvedDraft = improvedDraft.replace(subjectRegex, "").trim();
+      
+      // Setup UI
+      if (suggestedSubjects.length > 0) {
+        subjectSuggestionContainer.style.display = "block";
+        suggestedSubjectInput.value = ""; // Don't replace if empty
+        
+        subjectChipsContainer.innerHTML = "";
+        suggestedSubjects.forEach(subject => {
+          const chip = document.createElement("div");
+          chip.className = "subject-chip";
+          chip.textContent = subject;
+          chip.title = subject;
+          chip.addEventListener("click", () => {
+            suggestedSubjectInput.value = subject;
+          });
+          subjectChipsContainer.appendChild(chip);
+        });
+      } else {
+        subjectSuggestionContainer.style.display = "none";
+      }
+    } else {
+      subjectSuggestionContainer.style.display = "none";
+    }
 
     // Render both views
     renderDiff(originalDraft, improvedDraft);

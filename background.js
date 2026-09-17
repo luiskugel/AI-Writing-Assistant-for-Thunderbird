@@ -63,10 +63,15 @@ async function handleImprove(message) {
       history_trimmed = "";
     }
 
+    let systemPrompt = promptImprove;
+    if (message.isNewEmail) {
+      systemPrompt += "\n\nAlso generate 3 concise subject line alternatives for this email. Provide each subject wrapped exactly in <subject>...</subject> tags at the very beginning of your response.";
+    }
+
     const improvedHtml = await promptAI(
       `<!--BEGIN DRAFT-->\n${message.draft}\n<!--END DRAFT-->\n<!-- BEGIN CONTEXT -->\n${history_trimmed}\n<!-- END CONTEXT -->`,
       selectedModel,
-      promptImprove,
+      systemPrompt,
       api_settings
     );
 

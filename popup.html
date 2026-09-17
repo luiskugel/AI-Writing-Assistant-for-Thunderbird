@@ -31,6 +31,15 @@
 
     <!-- Review State -->
     <div id="reviewState" class="review-state" style="display: none;">
+      <!-- Subject Suggestion (Hidden by default) -->
+      <div id="subjectSuggestionContainer" class="subject-suggestion-container" style="display: none;">
+        <label for="suggestedSubjectInput" class="subject-label">Suggested Subject</label>
+        <input type="text" id="suggestedSubjectInput" class="subject-input" placeholder="Select a subject below or type your own...">
+        <div id="subjectChipsContainer" class="subject-chips-container">
+          <!-- Chips will be injected here -->
+        </div>
+      </div>
+
       <!-- Tab Bar -->
       <div class="tab-bar">
         <button class="tab-btn active" data-tab="changes" id="tabChanges">
