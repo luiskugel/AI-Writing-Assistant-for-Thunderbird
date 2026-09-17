@@ -209,7 +209,7 @@ async function startImprovement() {
         subjectSuggestionContainer.style.display = "block";
         suggestedSubjectInput.value = ""; // Don't replace if empty
         
-        subjectChipsContainer.innerHTML = "";
+        subjectChipsContainer.textContent = "";
         suggestedSubjects.forEach(subject => {
           const chip = document.createElement("div");
           chip.className = "subject-chip";
@@ -260,26 +260,61 @@ function renderDiff(oldHtml, newHtml) {
   const diffs = diffWords(oldText, newText);
 
   // Build legend
-  let html =
-    '<div class="diff-legend">' +
-    '<span class="diff-legend-item"><span class="diff-legend-swatch del"></span> Removed</span>' +
-    '<span class="diff-legend-item"><span class="diff-legend-swatch add"></span> Added</span>' +
-    "</div>";
+  diffOutput.textContent = "";
 
-  html += '<div class="diff-container-inner">';
+  const legend = document.createElement("div");
+  legend.className = "diff-legend";
+  
+  const delItem = document.createElement("span");
+  delItem.className = "diff-legend-item";
+  const delSwatch = document.createElement("span");
+  delSwatch.className = "diff-legend-swatch del";
+  delItem.appendChild(delSwatch);
+  delItem.appendChild(document.createTextNode(" Removed"));
+  legend.appendChild(delItem);
+
+  const addItem = document.createElement("span");
+  addItem.className = "diff-legend-item";
+  const addSwatch = document.createElement("span");
+  addSwatch.className = "diff-legend-swatch add";
+  addItem.appendChild(addSwatch);
+  addItem.appendChild(document.createTextNode(" Added"));
+  legend.appendChild(addItem);
+
+  diffOutput.appendChild(legend);
+
+  const innerContainer = document.createElement("div");
+  innerContainer.className = "diff-container-inner";
+
+  const appendTextWithBr = (parent, text) => {
+    const parts = text.split("\n");
+    for (let i = 0; i < parts.length; i++) {
+      if (parts[i]) {
+        parent.appendChild(document.createTextNode(parts[i]));
+      }
+      if (i < parts.length - 1) {
+        parent.appendChild(document.createElement("br"));
+      }
+    }
+  };
+
   for (const d of diffs) {
-    const escaped = escapeHtml(d.value);
     if (d.type === "delete") {
-      html += `<span class="diff-del">${escaped}</span>`;
+      const span = document.createElement("span");
+      span.className = "diff-del";
+      appendTextWithBr(span, d.value);
+      innerContainer.appendChild(span);
     } else if (d.type === "insert") {
-      html += `<span class="diff-add">${escaped}</span>`;
+      const span = document.createElement("span");
+      span.className = "diff-add";
+      appendTextWithBr(span, d.value);
+      innerContainer.appendChild(span);
     } else {
-      html += escaped;
+      appendTextWithBr(innerContainer, d.value);
     }
   }
-  html += "</div>";
 
-  diffOutput.innerHTML = html;
+  diffOutput.appendChild(innerContainer);
 }
 
 function renderFinal(htmlContent) {
@@ -377,9 +412,9 @@ function stripHtml(html) {
     .replace(/<\/?(p|div|h[1-6]|li|tr|blockquote)[^>]*>/gi, "\n")
     .replace(/<[^>]+>/g, "");
   // Decode HTML entities
-  const textarea = document.createElement("textarea");
-  textarea.innerHTML = text;
-  text = textarea.value;
+  const parser = new DOMParser();
+  const doc = parser.parseFromString(text, 'text/html');
+  text = doc.documentElement.textContent || "";
   // Collapse excessive newlines
   text = text.replace(/\n{3,}/g, "\n\n").trim();
   return text;

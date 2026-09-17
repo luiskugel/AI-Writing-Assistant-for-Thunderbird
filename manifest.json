@@ -4,7 +4,7 @@
   "version": "0.5.13",
   "author": "ABSONS Technologies",
   "description": "Improve your email writing using AI.",
-  "applications": {
+  "browser_specific_settings": {
     "gecko": {
       "id": "ai-writing-assistant-thunderbird@absons.net",
       "strict_min_version": "78.0"
