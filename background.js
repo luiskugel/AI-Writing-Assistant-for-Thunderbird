@@ -64,8 +64,17 @@ async function handleImprove(message) {
     }
 
     let systemPrompt = promptImprove;
+
+    // Fix conflicting signature rule from default settings
+    systemPrompt = systemPrompt.replace(
+      "7. Signature (if present): Do not modify.",
+      "7. Signature (if present): Only correct the capitalization of the salutation (e.g., Best regards, Sincerely etc) and the name following it. Do not modify anything else."
+    );
+
+
+
     if (message.isNewEmail) {
-      systemPrompt += "\n\nAlso generate 3 concise subject line alternatives for this email. Provide each subject wrapped exactly in <subject>...</subject> tags at the very beginning of your response.";
+      systemPrompt += "\n\nAlso generate 3 professional, concise, and engaging subject line alternatives for this email following best practices. Provide each subject wrapped exactly in <subject>...</subject> tags at the very beginning of your response.";
     }
 
     const improvedHtml = await promptAI(
@@ -122,7 +131,7 @@ async function promptAI(
   const apiKey = api_settings.apiKey;
   const temperature = api_settings.temperature;
   const maxTokens = api_settings.maxTokens
-  
+
   // 1. Configure API endpoint and headers based on model
   let apiEndpoint, headers, modelName;
   if (model.startsWith("openai:")) {

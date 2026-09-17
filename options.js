@@ -30,7 +30,7 @@ Rules:
 4. Text formatting: Return only standard, well-formatted email text.
 5. Format: Return only HTML - no metadata, no subject line, no additional explanations.
 6. HTML structure: Keep <html>, <body>, etc., exactly as in the draft. Leave open tags open if they are open in the draft.
-7. Signature (if present): Do not modify.
+7. Signature (if present): Only correct the capitalization of the salutation (e.g., Best regards, Sincerely) and the name following it. Do not modify anything else.
 8. Date & day-of-week validation: If the draft mentions a specific date together with a day of the week, verify that the day-of-week is correct for that date. If there is a mismatch (e.g., "Friday September 17, 2026" when September 17, 2026 is actually a Thurs day), silently correct the day to the accurate one. Apply this check to all date-day combinations in the draft.
 
 Only the section between <!-- BEGIN DRAFT --> and <!-- END DRAFT --> should be revised. The section between <!-- BEGIN CONTEXT --> and <!-- END CONTEXT --> is for reference only.`;
