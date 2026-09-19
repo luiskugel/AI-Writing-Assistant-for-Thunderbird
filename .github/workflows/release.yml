@@ -21,7 +21,7 @@ jobs:
         run: |
           # Zip the extension files into an .xpi file.
           # Exclude git/GitHub metadata files or unnecessary development scripts.
-          zip -r addon.xpi . -x "*.git*" ".github*" "README.md"
+          zip -r addon.xpi . -x "*.git*" ".github*" "README.md" ".DS_Store" "demo.gif"
           
           # Note: If your source files live inside a specific folder like 'src/', 
           # change the line above to: cd src && zip -r ../addon.xpi .
