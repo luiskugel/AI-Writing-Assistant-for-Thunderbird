@@ -1,0 +1,95 @@
+{
+  "version": 1,
+  "providers": [
+    {
+      "id": "openai",
+      "label": "OpenAI",
+      "api": "openai",
+      "endpoint": "https://api.openai.com/v1/chat/completions",
+      "maxTokensParam": "max_completion_tokens",
+      "apiKey": "required",
+      "apiKeyUrl": "https://platform.openai.com/api-keys",
+      "models": [
+        { "id": "gpt-6-astra", "label": "GPT-6 Astra (flagship)", "supportsTemperature": false },
+        { "id": "gpt-5.6-sol", "label": "GPT-5.6 Sol", "supportsTemperature": false },
+        { "id": "gpt-5.6-terra", "label": "GPT-5.6 Terra", "supportsTemperature": false },
+        { "id": "gpt-5.6-luna", "label": "GPT-5.6 Luna (fastest, lowest cost)", "supportsTemperature": false }
+      ]
+    },
+    {
+      "id": "groq",
+      "label": "Groq",
+      "api": "openai",
+      "endpoint": "https://api.groq.com/openai/v1/chat/completions",
+      "maxTokensParam": "max_completion_tokens",
+      "apiKey": "required",
+      "apiKeyUrl": "https://console.groq.com/keys",
+      "modelsUrl": "https://api.groq.com/openai/v1/models",
+      "models": [
+        { "id": "openai/gpt-oss-120b", "label": "OpenAI GPT-OSS 120B" },
+        { "id": "openai/gpt-oss-20b", "label": "OpenAI GPT-OSS 20B" },
+        { "id": "llama-3.3-70b-versatile", "label": "Llama 3.3 70B Versatile" },
+        { "id": "llama-3.1-8b-instant", "label": "Llama 3.1 8B Instant (fastest)" }
+      ]
+    },
+    {
+      "id": "google",
+      "label": "Google",
+      "api": "google",
+      "endpoint": "https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent",
+      "apiKey": "required",
+      "apiKeyUrl": "https://aistudio.google.com/apikey",
+      "models": [
+        { "id": "gemini-3.8-flash", "label": "Gemini 3.8 Flash" },
+        { "id": "gemini-3.7-flash", "label": "Gemini 3.7 Flash" },
+        { "id": "gemini-3.5-flash", "label": "Gemini 3.5 Flash" },
+        { "id": "gemini-3.5-flash-lite", "label": "Gemini 3.5 Flash Lite" },
+        { "id": "gemini-3.1-flash-lite", "label": "Gemini 3.1 Flash Lite (lowest cost)" }
+      ]
+    },
+    {
+      "id": "openrouter",
+      "label": "OpenRouter",
+      "api": "openai",
+      "endpoint": "https://openrouter.ai/api/v1/chat/completions",
+      "apiKey": "required",
+      "apiKeyUrl": "https://openrouter.ai/keys",
+      "modelsUrl": "https://openrouter.ai/api/v1/models",
+      "headers": {
+        "HTTP-Referer": "https://github.com/luiskugel/AI-Writing-Assistant-for-Thunderbird",
+        "X-Title": "AI Writing Assistant for Thunderbird"
+      },
+      "models": [
+        { "id": "openai/gpt-6-astra", "label": "GPT-6 Astra", "supportsTemperature": false },
+        { "id": "openai/gpt-5.6-luna", "label": "GPT-5.6 Luna", "supportsTemperature": false },
+        { "id": "anthropic/claude-fable-5.1", "label": "Claude Fable 5.1", "supportsTemperature": false },
+        { "id": "anthropic/claude-sonnet-5", "label": "Claude Sonnet 5", "supportsTemperature": false },
+        { "id": "anthropic/claude-haiku-4.5", "label": "Claude Haiku 4.5" },
+        { "id": "google/gemini-3.8-flash", "label": "Gemini 3.8 Flash" },
+        { "id": "deepseek/deepseek-v4.1-flash", "label": "DeepSeek V4.1 Flash" },
+        { "id": "qwen/qwen3.8-flash", "label": "Qwen3.8 Flash" },
+        { "id": "z-ai/glm-5.3-flash", "label": "GLM 5.3 Flash" }
+      ]
+    },
+    {
+      "id": "ollama",
+      "label": "Ollama (self-hosted)",
+      "api": "ollama",
+      "endpoint": "http://localhost:11434/api/chat",
+      "endpointEditable": true,
+      "apiKey": "none",
+      "modelsUrl": "http://localhost:11434/api/tags",
+      "note": "Requires OLLAMA_ORIGINS to include moz-extension://*",
+      "models": []
+    },
+    {
+      "id": "custom",
+      "label": "Custom (OpenAI-compatible)",
+      "api": "openai",
+      "endpoint": "",
+      "endpointEditable": true,
+      "apiKey": "optional",
+      "models": []
+    }
+  ]
+}

@@ -1,232 +1,152 @@
+/**
+ * Compose-window action: rewrites the current draft with the configured model.
+ */
+
+const HISTORY_MARKER = '<div class="moz-cite-prefix">';
+const HISTORY_CHAR_LIMIT = 3000;
+
 function trimStringWithEllipsis(str, n) {
-  return str.length > n ? str.substring(0, n) + '...' : str;
+  return str.length > n ? str.substring(0, n) + "..." : str;
 }
 
 function splitHtmlByTag(htmlString, tagName) {
   const index = htmlString.indexOf(tagName);
   if (index === -1) {
-    return [htmlString, '']; // tag not found
+    return [htmlString, ""]; // tag not found
   }
-  const before = htmlString.slice(0, index);
-  const after = htmlString.slice(index);
-  return [before, after];
+  return [htmlString.slice(0, index), htmlString.slice(index)];
 }
 
-function sanetizeLLMResult(llm_result) {
-  llm_result = llm_result.replace("```html", '');
-  llm_result = llm_result.replace("```", '');
-  llm_result = llm_result.replace("'''html", '');
-  llm_result = llm_result.replace("'''", '');
-  llm_result = llm_result.replace('"""html', '');
-  llm_result = llm_result.replace('"""', '');
-  return llm_result;
+/** Strips the code fences some models wrap their answer in. */
+function sanitizeLLMResult(llmResult) {
+  return llmResult
+    .replace(/^\s*(?:```|'''|""")[a-zA-Z]*\s*\n?/, "")
+    .replace(/\n?\s*(?:```|'''|""")\s*$/, "")
+    .trim();
 }
 
-// Initialize the add-on 
+/** Resolves the stored `provider:model` selection against the active config. */
+async function resolveSelection() {
+  const [settings, { config }] = await Promise.all([
+    AIWA.settings.load(),
+    AIWA.config.loadConfig(),
+  ]);
+
+  const { providerId, modelId } = AIWA.config.parseModelRef(
+    settings.selectedModel
+  );
+  const provider = AIWA.config.findProvider(config, providerId);
+  if (!provider) {
+    throw new AIWA.api.ApiError(
+      settings.selectedModel
+        ? `Unknown provider "${providerId}". Check your model configuration.`
+        : "No model selected yet."
+    );
+  }
+  if (!modelId) {
+    throw new AIWA.api.ApiError(`No model selected for ${provider.label}.`);
+  }
+  // A model typed by hand is legitimate; the config entry only adds metadata.
+  const model = AIWA.config.findModel(provider, modelId) || {
+    id: modelId,
+    label: modelId,
+  };
+
+  return { settings, provider, model };
+}
+
+async function promptAI({ provider, model, settings }, systemPrompt, text) {
+  const result = await AIWA.api.complete({
+    provider,
+    model,
+    systemPrompt,
+    text,
+    settings,
+  });
+  return sanitizeLLMResult(result);
+}
+
+// Open the settings page on install, so the add-on can be configured.
 browser.runtime.onInstalled.addListener(async () => {
-  // Prompt for API key and Options on installation
-  const result = await browser.storage.local.get("apiKey");
-  if (!result.apiKey) {
-    browser.tabs.create({
-      url: browser.runtime.getURL("options.html"),
-    });
+  const settings = await AIWA.settings.load();
+  if (!settings.selectedModel) {
+    browser.tabs.create({ url: browser.runtime.getURL("options.html") });
   }
 });
 
-// Listen for the compose action button click
 browser.composeAction.onClicked.addListener(async (tab) => {
-  // Get the current compose window
   const composeWindow = await browser.compose.getComposeDetails(tab.id);
 
   try {
     // Disable the button while processing
     await browser.composeAction.disable(tab.id);
 
-    // Get the custom prompt and model from settings
-    const settings = await browser.storage.local.get([
-      "promptImprove",
-      "promptHtml2Text",
-      "selectedModel",
-      "useConversationHistory"
-    ]);
-    const api_settings = await browser.storage.local.get([
-      "apiKey",
-      "temperature",
-      "maxTokens",
-      "customApiEndpoint",
-      "customModel"
-    ]);
-    const promptImprove = settings.promptImprove;
-    const promptHtml2Text = settings.promptHtml2Text;
-    const selectedModel = settings.selectedModel;
-    const useConversationHistory = settings.useConversationHistory;
-    
-    // Split the draft from the history
-    const [draft, history] = splitHtmlByTag(composeWindow.body, '<div class="moz-cite-prefix">');
+    const selection = await resolveSelection();
+    const { settings } = selection;
+
+    // Split the draft from the quoted history
+    const [draft, history] = splitHtmlByTag(composeWindow.body, HISTORY_MARKER);
     if (!draft.trim()) {
       throw new Error("Draft is empty. Please write an email before using the AI.");
     }
 
-    let history_trimmed = trimStringWithEllipsis(history, 3000);
-    if (!useConversationHistory) {
-      history_trimmed = "";
-    }
+    const historyTrimmed = settings.useConversationHistory
+      ? trimStringWithEllipsis(history, HISTORY_CHAR_LIMIT)
+      : "";
 
-    // Improve the writing of the draft
     const improvedHtml = await promptAI(
-      `<!--BEGIN DRAFT-->\n${draft}\n<!--END DRAFT-->\n<!-- BEGIN CONTEXT -->\n${history_trimmed}\n<!-- END CONTEXT -->`,
-      selectedModel,
-      promptImprove,
-      api_settings
+      selection,
+      settings.promptImprove,
+      `<!--BEGIN DRAFT-->\n${draft}\n<!--END DRAFT-->\n<!-- BEGIN CONTEXT -->\n${historyTrimmed}\n<!-- END CONTEXT -->`
     );
 
-    // Join the improved text with the history and update the compose window
-    // Depending on plain text or HTML different compose details must be set
+    // Join the improved text with the history and update the compose window.
+    // Plain text and HTML compose windows take different detail fields.
     if (composeWindow.isPlainText) {
       const improvedText = await promptAI(
-        improvedHtml,
-        selectedModel,
-        promptHtml2Text, 
-        api_settings
+        selection,
+        settings.promptHtml2Text,
+        improvedHtml
       );
-      const improvedTextWithHistory = `${improvedText}\n\n${history}`;
       await browser.compose.setComposeDetails(tab.id, {
         ...composeWindow,
-        plainTextBody: improvedTextWithHistory,
+        plainTextBody: `${improvedText}\n\n${history}`,
       });
     } else {
-      const improvedHtmlWithHistory = `${improvedHtml}<br><br>${history}`;
       await browser.compose.setComposeDetails(tab.id, {
         ...composeWindow,
-        body: improvedHtmlWithHistory,
+        body: `${improvedHtml}<br><br>${history}`,
       });
     }
-
-    // Re-enable the button
-    await browser.composeAction.enable(tab.id);
-  
-    // Error handling
   } catch (error) {
     console.error("Error improving writing style:", error);
-    // Re-enable the button
+    reportError(error);
+  } finally {
     await browser.composeAction.enable(tab.id);
-    // Show error notification with option to open settings
-    if (error.message.includes("API key not found")) {
-      if (
-        confirm(
-          "API key not found. Would you like to open the settings page to set up your API key?"
-        )
-      ) {
-        browser.runtime.openOptionsPage();
-      }
-    } else if (error.message.includes("Cross-Origin")) {
-      alert(
-        "Ollama Requires to set 'OLLAMA_ORIGINS \"moz-extension://*\" see https://github.com/ollama/ollama/blob/main/docs/faq.md#how-can-i-allow-additional-web-origins-to-access-ollama."
-      );
-    } else {
-      alert(
-        "Failed to improve writing. Please check your API key and try again."
-      );
-    }
   }
 });
 
-async function promptAI(
-  text,
-  model,
-  systemPrompt,
-  api_settings
-) {
-  const apiKey = api_settings.apiKey;
-  const temperature = api_settings.temperature;
-  const maxTokens = api_settings.maxTokens
-  
-  // 1. Configure API endpoint and headers based on model
-  let apiEndpoint, headers, modelName;
-  if (model.startsWith("openai:")) {
-    apiEndpoint = "https://api.openai.com/v1/chat/completions";
-    headers = {
-      Authorization: `Bearer ${apiKey}`,
-      "Content-Type": "application/json",
-    };
-    modelName = model.split(":")[1];
-  } else if (model.startsWith("groq:")) {
-    apiEndpoint = "https://api.groq.com/openai/v1/chat/completions";
-    headers = {
-      Authorization: `Bearer ${apiKey}`,
-      "Content-Type": "application/json",
-    };
-    modelName = model.split(":")[1];
-  } else if (model.startsWith("google:")) {
-    modelName = model.split(":")[1];
-    apiEndpoint = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${apiKey}`;
-    headers = {
-      "Content-Type": "application/json",
-    };
-  } else if (model.startsWith("custom:")) {
-    apiEndpoint = api_settings.customApiEndpoint;
-    headers = {
-      "Content-Type": "application/json",
-    };
-    modelName = api_settings.customModel;
-  } else {
-    throw new Error("Unsupported model selected");
+function reportError(error) {
+  const message = error.message || String(error);
+  const needsSetup =
+    message.includes("API key not found") ||
+    message.includes("No model selected") ||
+    message.includes("Unknown provider") ||
+    message.includes("No API endpoint configured");
+
+  if (needsSetup) {
+    if (confirm(`${message}\n\nOpen the settings page now?`)) {
+      browser.runtime.openOptionsPage();
+    }
+    return;
   }
 
-  // 2. Prepare request body based on API
-  let requestBody;
-  if (model.startsWith("google:")) {
-    requestBody = {
-      contents: [
-        {
-          parts: [
-            {
-              text: `${systemPrompt}\n\n${text}`,
-            },
-          ],
-        },
-      ],
-    };
-  } else {
-    requestBody = {
-      model: modelName,
-      messages: [
-        {
-          role: "system",
-          content: systemPrompt,
-        },
-        {
-          role: "user",
-          content: text,
-        },
-      ],
-      temperature: temperature,
-      max_completion_tokens: maxTokens,
-      stream: false,
-    };
+  if (message.includes("Could not reach") && message.includes("localhost")) {
+    alert(
+      `${message}\n\nOllama requires OLLAMA_ORIGINS to include "moz-extension://*". See https://github.com/ollama/ollama/blob/main/docs/faq.md#how-can-i-allow-additional-web-origins-to-access-ollama`
+    );
+    return;
   }
 
-  const response = await fetch(apiEndpoint, {
-    method: "POST",
-    headers,
-    body: JSON.stringify(requestBody),
-  });
-
-  if (!response.ok) {
-    throw new Error("API request failed");
-  }
-
-  const data = await response.json();
-
-  // 3. Extract response based on API
-  let llm_result;
-  if (model.startsWith("google:")) {
-    llm_result = data.candidates[0].content.parts[0].text;
-  } else if (model.startsWith("custom:")) {
-    llm_result = data.message.content;
-  } else {
-    llm_result = data.choices[0].message.content;
-  }
-
-  return sanetizeLLMResult(llm_result);
+  alert(`Failed to improve writing.\n\n${message}`);
 }

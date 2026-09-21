@@ -2,6 +2,26 @@
 
 Thank you for your interest in contributing! We aim to keep things simple and welcome any help to make this extension better.
 
+## Project Layout
+
+```
+manifest.json        Add-on manifest (permissions, scripts, icons)
+config/models.json   Providers and models - edit this to add either
+modules/config.js    Loads and validates the model configuration
+modules/settings.js  Settings defaults, storage and migration
+modules/api.js       Request/response handling per provider API shape
+background.js        Compose-button handler
+options.html/.js/.css  Settings page
+```
+
+To add a provider, add an entry to `config/models.json` and, if it lives on a
+new domain, add that host to `permissions` in `manifest.json`. Code changes are
+only needed for a genuinely new request format (see `api` in `modules/api.js`).
+
+To try your changes, load the folder in Thunderbird via
+_Tools > Developer Tools > Debug Add-ons > Load Temporary Add-on_ and pick
+`manifest.json`.
+
 ## Ways to Contribute
 
 ### Reporting Bugs
